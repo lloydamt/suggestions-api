@@ -1,18 +1,28 @@
 package com.lamt.suggestionsapi.config;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-public class CorsConfig implements CorsConfigurationSource {
+@Configuration
+public class CorsConfig {
 
-    @Override
-    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-        CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
-        config.setAllowCredentials(true);
-        return config;
+    @Value("${allowed.origin}")
+    private String allowedOrigin;
+
+    @Bean
+    public WebMvcConfigurer getCorsConfiguration() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins(allowedOrigin)
+                        .allowedMethods("*")
+                        .allowedHeaders("*")
+                        .exposedHeaders("Access-Control-Allow-Headers", "Authorization");
+            }
+        };
     }
 }

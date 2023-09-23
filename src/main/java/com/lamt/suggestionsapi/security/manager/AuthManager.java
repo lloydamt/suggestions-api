@@ -24,6 +24,6 @@ public class AuthManager implements AuthenticationManager {
         if (!bCryptPasswordEncoder.matches(authentication.getCredentials().toString(), user.getPassword())) {
             throw new BadCredentialsException("Incorrect Password");
         }
-        return new UsernamePasswordAuthenticationToken(authentication.getName(), user.getPassword());
+        return new UsernamePasswordAuthenticationToken(user.getId(), user.getPassword());
     }
 }

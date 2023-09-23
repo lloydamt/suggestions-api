@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,7 +56,6 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    @CrossOrigin(origins = "http://localhost:8080")
     public ResponseEntity<String> registerUser(@Valid @RequestBody User user) {
         return new ResponseEntity<>(userService.createUser(user).getUsername(), HttpStatus.CREATED);
     }

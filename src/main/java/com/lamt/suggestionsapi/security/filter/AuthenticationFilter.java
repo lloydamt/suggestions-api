@@ -46,6 +46,9 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstants.EXPIRES_AT))
                 .sign(Algorithm.HMAC512(SecurityConstants.SECRET));
         response.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + token);
+        response.setContentType("application/json");
+        response.getWriter().write(authResult.getName());
+        response.getWriter().flush();
     }
 
     @Override
