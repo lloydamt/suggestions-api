@@ -1,4 +1,4 @@
-package com.lamt.suggestionsapi.service;
+package com.lamt.suggestionsapi.service.interfaces;
 
 import com.lamt.suggestionsapi.entity.Comment;
 import com.lamt.suggestionsapi.entity.Movie;

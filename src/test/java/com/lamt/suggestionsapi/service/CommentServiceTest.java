@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -80,7 +79,7 @@ public class CommentServiceTest {
 
         Comment comment = buildComment("new comment");
         Comment comment2 = buildComment("another comment");
-        var comments = Stream.of(comment, comment2).toList();
+        var comments = List.of(comment, comment2);
         movie.setComments(comments);
 
         when(commentRepository.findAllByUserIdAndMovieId(any(), any())).thenReturn(comments);
