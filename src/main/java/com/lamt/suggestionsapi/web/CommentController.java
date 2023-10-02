@@ -1,11 +1,14 @@
 package com.lamt.suggestionsapi.web;
 
 import com.lamt.suggestionsapi.entity.Comment;
-import com.lamt.suggestionsapi.service.CommentService;
+import com.lamt.suggestionsapi.service.interfaces.CommentService;
 import java.util.List;
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @RestController
 @RequestMapping("/comment")
-@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true", allowedHeaders = "true")
 public class CommentController {
 
     CommentService commentService;
@@ -27,8 +29,9 @@ public class CommentController {
     }
 
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<HttpStatus> deleteComment(@PathVariable Long commentId) {
-        commentService.deleteComment(commentId);
+    public ResponseEntity<HttpStatus> deleteComment(@PathVariable UUID commentId, Authentication authentication) {
+        var userId = UUID.fromString(authentication.getName());
+        commentService.deleteComment(commentId, userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

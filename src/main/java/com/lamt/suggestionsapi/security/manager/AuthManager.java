@@ -1,7 +1,7 @@
 package com.lamt.suggestionsapi.security.manager;
 
 import com.lamt.suggestionsapi.entity.User;
-import com.lamt.suggestionsapi.service.UserService;
+import com.lamt.suggestionsapi.service.interfaces.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;

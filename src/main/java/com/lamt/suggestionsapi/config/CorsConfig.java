@@ -21,7 +21,7 @@ public class CorsConfig {
                         .allowedOrigins(allowedOrigin)
                         .allowedMethods("*")
                         .allowedHeaders("*")
-                        .exposedHeaders("Access-Control-Allow-Headers", "Authorization");
+                        .exposedHeaders("Access-Control-Allow-Headers", "Authorization", "Duration");
             }
         };
     }

@@ -18,36 +18,23 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
 @Setter
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @Builder
+@NoArgsConstructor
 @Entity
 @Table(name = "movie")
 public class Movie {
 
-    public Movie(String title, String description, Integer year, String genre, Integer likes, Long userRating) {
-        this.title = title;
-        this.description = description;
-        this.year = year;
-        this.genre = genre;
-        this.likes = likes;
-        this.userRating = userRating;
-    }
-
-    public Movie() {
-        this.likes = 0;
-        this.saves = 0;
-        this.userRating = 0L;
-    }
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "title", nullable = false, unique = true)
     @NonNull
@@ -72,7 +59,6 @@ public class Movie {
     private Integer saves;
 
     @Column(name = "user_rating")
-    @NonNull
     private Long userRating;
 
     @JsonIgnore

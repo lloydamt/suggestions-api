@@ -9,12 +9,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+@AllArgsConstructor
 public class JWTAuthorizationFilter extends OncePerRequestFilter {
+
+    private String secret;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -26,10 +30,8 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
         }
 
         String token = header.replace(SecurityConstants.BEARER, "");
-        String user = JWT.require(Algorithm.HMAC512(SecurityConstants.SECRET))
-                .build()
-                .verify(token)
-                .getSubject();
+        String user =
+                JWT.require(Algorithm.HMAC512(secret)).build().verify(token).getSubject();
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, Arrays.asList());
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);

@@ -3,7 +3,7 @@ package com.lamt.suggestionsapi.web;
 import com.lamt.suggestionsapi.entity.Comment;
 import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
-import com.lamt.suggestionsapi.service.UserService;
+import com.lamt.suggestionsapi.service.interfaces.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Set;

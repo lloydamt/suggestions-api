@@ -22,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authManager;
+    private String secret;
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -44,8 +45,9 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
         String token = JWT.create()
                 .withSubject(authResult.getName())
                 .withExpiresAt(new Date(System.currentTimeMillis() + SecurityConstants.EXPIRES_AT))
-                .sign(Algorithm.HMAC512(SecurityConstants.SECRET));
+                .sign(Algorithm.HMAC512(secret));
         response.addHeader(SecurityConstants.AUTHORIZATION, SecurityConstants.BEARER + token);
+        response.addHeader(SecurityConstants.DURATION, Integer.toString(SecurityConstants.EXPIRES_AT));
         response.setContentType("application/json");
         response.getWriter().write(authResult.getName());
         response.getWriter().flush();

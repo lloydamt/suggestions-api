@@ -6,11 +6,12 @@ import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.exception.EntityNotFoundException;
 import com.lamt.suggestionsapi.exception.UserNotPermittedException;
 import com.lamt.suggestionsapi.repository.CommentRepository;
+import com.lamt.suggestionsapi.service.interfaces.CommentService;
+import com.lamt.suggestionsapi.service.interfaces.MovieService;
+import com.lamt.suggestionsapi.service.interfaces.UserService;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -22,21 +23,18 @@ public class CommentServiceImpl implements CommentService {
     UserService userService;
 
     @Override
-    public Comment addComment(Comment comment, Long movieId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public Comment addComment(Comment comment, UUID movieId, UUID userId) {
         Movie movie = movieService.getMovie(movieId);
-        User user = userService.getUserByEmail(authentication.getName());
+        User user = userService.getUser(userId);
         comment.setMovie(movie);
         comment.setUser(user);
         return commentRepository.save(comment);
     }
 
     @Override
-    public void deleteComment(Long commentId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userService.getUserByEmail(authentication.getName());
+    public void deleteComment(UUID commentId, UUID userId) {
         Comment comment = getComment(commentId);
-        if (comment.getUser() != user) {
+        if (comment.getUser().getId() != userId) {
             throw new UserNotPermittedException();
         }
 
@@ -44,8 +42,8 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment getComment(Long id) {
-        Comment comment = unWrapComment(commentRepository.findById(id));
+    public Comment getComment(UUID id) {
+        Comment comment = commentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(Comment.class));
         return comment;
     }
 
@@ -55,14 +53,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<Comment> findUserCommentForMovie(Long userId, Long movieId) {
+    public List<Comment> findUserCommentForMovie(UUID userId, UUID movieId) {
         return commentRepository.findAllByUserIdAndMovieId(userId, movieId);
-    }
-
-    private static Comment unWrapComment(Optional<Comment> entity) {
-        if (entity.isPresent()) {
-            return entity.get();
-        }
-        throw new EntityNotFoundException(Comment.class);
     }
 }

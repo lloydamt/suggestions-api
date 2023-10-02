@@ -1,8 +1,8 @@
 package com.lamt.suggestionsapi;
 
+import com.lamt.suggestionsapi.exception.EntityAlreadyExistsException;
 import com.lamt.suggestionsapi.exception.EntityNotFoundException;
 import com.lamt.suggestionsapi.exception.ErrorResponse;
-import com.lamt.suggestionsapi.exception.UserAlreadyExistsException;
 import com.lamt.suggestionsapi.exception.UserNotPermittedException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,8 +29,8 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+    @ExceptionHandler(EntityAlreadyExistsException.class)
+    public ResponseEntity<Object> handleUserAlreadyExistsException(EntityAlreadyExistsException ex) {
         ErrorResponse error = new ErrorResponse(Arrays.asList(ex.getMessage()));
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

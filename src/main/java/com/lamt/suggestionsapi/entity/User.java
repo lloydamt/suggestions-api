@@ -18,12 +18,13 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @Builder
 @Setter
 @Getter
@@ -35,8 +36,8 @@ public class User {
     // ADD EMAIL ADDRESS
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "username", nullable = false, unique = true)
     @NonNull

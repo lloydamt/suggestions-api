@@ -5,9 +5,12 @@ import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public interface UserService {
     User getUser(String username);
+
+    User getUser(UUID id);
 
     User getUserByEmail(String email);
 

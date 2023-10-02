@@ -1,12 +1,30 @@
 package com.lamt.suggestionsapi.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.lamt.suggestionsapi.entity.Comment;
+import com.lamt.suggestionsapi.entity.Movie;
+import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.repository.CommentRepository;
-import org.junit.runner.RunWith;
+import com.lamt.suggestionsapi.service.interfaces.MovieService;
+import com.lamt.suggestionsapi.service.interfaces.UserService;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CommentServiceTest {
 
     @Mock
@@ -21,56 +39,94 @@ public class CommentServiceTest {
     @InjectMocks
     CommentServiceImpl commentService;
 
-    // @Test
-    // public void getCommentTest() {
-    //     Comment comment = new Comment(1L, "new comment", new User(), new Movie(), LocalDateTime.now());
-    //     when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+    @Test
+    public void getCommentTest() {
+        Comment comment = buildComment("new comment");
+        when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
 
-    //     assertEquals(comment, commentService.getComment(1L));
-    // }
+        assertEquals(comment, commentService.getComment(UUID.randomUUID()));
+    }
 
-    // @Test
-    // public void getAllCommentsTest() {
-    //     Comment comment = new Comment(1L, "new comment", new User(), new Movie(), LocalDateTime.now());
-    //     Comment comment2 = new Comment(2L, "another comment", new User(), new Movie(), LocalDateTime.now());
-    //     List<Comment> comments = Arrays.asList(comment, comment2);
-    //     when(commentRepository.findAll()).thenReturn(comments);
+    @Test
+    public void getAllCommentsTest() {
+        Comment comment = buildComment("new comment");
+        Comment comment2 = buildComment("another comment");
+        List<Comment> comments = Arrays.asList(comment, comment2);
+        when(commentRepository.findAll()).thenReturn(comments);
 
-    //     assertEquals(comments, commentService.getAllComments());
-    // }
+        assertEquals(comments, commentService.getAllComments());
+    }
 
-    // @Test
-    // public void addCommentTest() {
-    //     Movie movie = new Movie();
-    //     movie.setId(1L);
-    //     movie.setTitle("movie");
+    @Test
+    public void addCommentTest() {
+        var id = UUID.randomUUID();
+        Movie movie = buildMovie().toBuilder().id(id).build();
+        User user = buildUser().toBuilder().id(id).build();
 
-    //     User user = new User("user", "password");
-    //     user.setId(1L);
+        Comment comment = buildComment("new comment");
+        when(movieService.getMovie(id)).thenReturn(movie);
+        when(userService.getUser(id)).thenReturn(user);
+        when(commentRepository.save(comment)).thenReturn(comment);
 
-    //     Comment comment = new Comment(1L, "new comment", new User(), movie, LocalDateTime.now());
-    //     when(movieService.getMovie(1L)).thenReturn(movie);
-    //     when(commentRepository.save(comment)).thenReturn(comment);
-    //     when(userService.getUser(1L)).thenReturn(user);
+        var savedComment = commentService.addComment(comment, id, id);
+        assertEquals(comment, savedComment);
+        assertEquals("title1", savedComment.getMovie().getTitle());
+    }
 
-    //     assertEquals(comment, commentService.addComment(comment, 1L, 1L));
-    //     assertEquals("movie", commentService.addComment(comment, 1L, 1L).getMovie().getTitle());
-    // }
+    @Test
+    public void findCommentsByUser() {
+        var id = UUID.randomUUID();
+        Movie movie = buildMovie().toBuilder().id(id).build();
 
-    // @Test
-    // public void findCommentsByUser() {
-    //     User user = new User("username", "password");
-    //     user.setId(1L);
-    //     Comment comment = new Comment(1L, "new comment", user, new Movie(), LocalDateTime.now());
-    //     Comment comment2 = new Comment(2L, "another comment", user, new Movie(), LocalDateTime.now());
-    //     List<Comment> comments = Arrays.asList(comment, comment2);
-    //     Movie movie = new Movie();
-    //     movie.setId(1L);
-    //     movie.setComments(comments);
+        Comment comment = buildComment("new comment");
+        Comment comment2 = buildComment("another comment");
+        var comments = Stream.of(comment, comment2).toList();
+        movie.setComments(comments);
 
-    //     when(commentRepository.findByUserIdAndMovieId(1L, 1L)).thenReturn(comments);
+        when(commentRepository.findAllByUserIdAndMovieId(any(), any())).thenReturn(comments);
 
-    //     assertEquals(comments, commentService.findUserCommentForMovie(1L, 1L));
+        var savedComments = commentService.findUserCommentForMovie(id, id);
 
-    // }
+        assertEquals(comments, savedComments);
+    }
+
+    @Test
+    public void deleteCommentTest() {
+        var id = UUID.randomUUID();
+        var user = buildUser().toBuilder().id(id).build();
+        var comment = buildComment("new comment").toBuilder().user(user).build();
+        when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
+        commentService.deleteComment(UUID.randomUUID(), id);
+
+        verify(commentRepository).deleteById(any());
+    }
+
+    private Comment buildComment(String content) {
+        return Comment.builder()
+                .content(content)
+                .user(buildUser())
+                .movie(buildMovie())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    private User buildUser() {
+        return User.builder()
+                .email("user@gmail.com")
+                .username("username")
+                .password("password")
+                .likes(new HashSet<Movie>())
+                .saved(new HashSet<Movie>())
+                .build();
+    }
+
+    private Movie buildMovie() {
+        return Movie.builder()
+                .title("title1")
+                .description("desc")
+                .year(2022)
+                .likes(0)
+                .saves(0)
+                .build();
+    }
 }

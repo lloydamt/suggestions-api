@@ -6,11 +6,13 @@ import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.exception.EntityNotFoundException;
 import com.lamt.suggestionsapi.exception.UserNotPermittedException;
 import com.lamt.suggestionsapi.repository.MovieRepository;
+import com.lamt.suggestionsapi.service.interfaces.MovieService;
+import com.lamt.suggestionsapi.service.interfaces.UserService;
 import jakarta.transaction.Transactional;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +25,13 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public Movie suggestMovie(Movie movie, String username) {
-        User user = userService.getUserByEmail(username);
+        User user = userService.getUser(username);
         movie.setUser(user);
         return movieRepository.save(movie);
     }
 
     @Override
-    public Movie editMovie(Long id, String username, Movie movie) {
+    public Movie editMovie(UUID id, String username, Movie movie) {
         checkUserOwnsMovie(id, username);
 
         Movie existingMovie = this.getMovie(id);
@@ -54,13 +56,13 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Movie getMovie(Long movieId) {
-        Movie movie = unwrapMovie(movieRepository.findById(movieId));
+    public Movie getMovie(UUID movieId) {
+        Movie movie = movieRepository.findById(movieId).orElseThrow(() -> new EntityNotFoundException(Movie.class));
         return movie;
     }
 
     @Override
-    public Integer getMovieLikes(Long movieId) {
+    public Integer getMovieLikes(UUID movieId) {
         Movie movie = getMovie(movieId);
         return movie.getLikes();
     }
@@ -82,30 +84,30 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public Set<Movie> getMoviesByUser(Long userId) {
+    public Set<Movie> getMoviesByUser(UUID userId) {
         Set<Movie> movies = movieRepository.findByUserId(userId);
         return movies;
     }
 
     @Override
-    public Movie likeMovie(Long movieId, String username) {
+    public Movie likeMovie(UUID movieId, String username) {
         return likeOrSaveUser(movieId, username, "like");
     }
 
     @Override
-    public Movie saveMovie(Long movieId, String username) {
+    public Movie saveMovie(UUID movieId, String username) {
         return likeOrSaveUser(movieId, username, "save");
     }
 
     @Override
-    public List<Comment> getMovieComments(Long movieId) {
+    public List<Comment> getMovieComments(UUID movieId) {
         Movie movie = getMovie(movieId);
         return movie.getComments();
     }
 
     // Write tests for this
     @Override
-    public void unlikeMovie(Long movieId, String username) {
+    public void unlikeMovie(UUID movieId, String username) {
         Movie movie = getMovie(movieId);
         User user = userService.getUserByEmail(username);
         if (movie.getLikedBy().contains(user)) {
@@ -120,7 +122,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public void unsaveMovie(Long movieId, String username) {
+    public void unsaveMovie(UUID movieId, String username) {
         Movie movie = getMovie(movieId);
         User user = userService.getUserByEmail(username);
         movie.getSavedBy().remove(user);
@@ -132,19 +134,12 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     @Transactional
-    public void deleteMovie(Long id, String username) {
+    public void deleteMovie(UUID id, String username) {
         checkUserOwnsMovie(id, username);
         movieRepository.deleteById(id);
     }
 
-    private static Movie unwrapMovie(Optional<Movie> entity) {
-        if (entity.isPresent()) {
-            return entity.get();
-        }
-        throw new EntityNotFoundException(Movie.class);
-    }
-
-    private Movie likeOrSaveUser(Long movieId, String username, String interaction) {
+    private Movie likeOrSaveUser(UUID movieId, String username, String interaction) {
         User user = userService.getUserByEmail(username);
         Movie movie = getMovie(movieId);
         if (interaction.equals("like") && !userLikesMovie(user, movie)) {
@@ -170,9 +165,9 @@ public class MovieServiceImpl implements MovieService {
         return user.getSaved().contains(movie);
     }
 
-    private void checkUserOwnsMovie(Long id, String username) {
+    private void checkUserOwnsMovie(UUID id, String username) {
         Movie movie = getMovie(id);
-        if (!movie.getUser().getEmail().equalsIgnoreCase(username)) {
+        if (!movie.getUser().getUsername().equalsIgnoreCase(username)) {
             throw new UserNotPermittedException();
         }
     }

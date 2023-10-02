@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
@@ -17,7 +18,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Entity
 @Getter
 @Setter
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,8 +27,8 @@ import org.hibernate.annotations.CreationTimestamp;
 public class Comment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "content", nullable = false)
     @NonNull
