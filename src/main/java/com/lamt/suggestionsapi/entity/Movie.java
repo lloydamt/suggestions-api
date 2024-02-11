@@ -28,6 +28,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @SuperBuilder(toBuilder = true)
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "movie")
 public class Movie {

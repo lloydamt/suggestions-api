@@ -21,7 +21,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @SuperBuilder(toBuilder = true)
 @Builder
 @NoArgsConstructor
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Table(name = "comment")
 public class Comment {
 

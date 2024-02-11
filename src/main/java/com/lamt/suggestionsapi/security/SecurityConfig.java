@@ -5,25 +5,28 @@ import static org.springframework.boot.autoconfigure.security.servlet.PathReques
 import com.lamt.suggestionsapi.security.filter.AuthenticationFilter;
 import com.lamt.suggestionsapi.security.filter.ExceptionHandlingFilter;
 import com.lamt.suggestionsapi.security.filter.JWTAuthorizationFilter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     @Value("${jwt.secret}")
     private String secret;
 
+    @Autowired
     AuthenticationManager authManager;
+
+    @Autowired
     CorsConfigurationSource corsConfigurationSource;
 
     @Bean
@@ -31,7 +34,7 @@ public class SecurityConfig {
         AuthenticationFilter authFilter = new AuthenticationFilter(authManager, secret);
         authFilter.setFilterProcessesUrl("/auth");
         http.headers(headers -> headers.frameOptions().disable())
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests()
                 .requestMatchers(toH2Console())
                 .permitAll()

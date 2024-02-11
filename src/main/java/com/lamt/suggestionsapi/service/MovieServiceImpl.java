@@ -109,7 +109,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public void unlikeMovie(UUID movieId, String username) {
         Movie movie = getMovie(movieId);
-        User user = userService.getUserByEmail(username);
+        User user = userService.getUser(username);
         if (movie.getLikedBy().contains(user)) {
             movie.getLikedBy().remove(user);
         } else {
@@ -124,8 +124,12 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public void unsaveMovie(UUID movieId, String username) {
         Movie movie = getMovie(movieId);
-        User user = userService.getUserByEmail(username);
-        movie.getSavedBy().remove(user);
+        User user = userService.getUser(username);
+        if (movie.getSavedBy().contains(user)) {
+            movie.getSavedBy().remove(user);
+        } else {
+            throw new RuntimeException("Cannot perform action");
+        }
         if (movie.getSaves() > 0) {
             movie.setSaves(movie.getSaves() - 1);
         }
@@ -140,7 +144,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     private Movie likeOrSaveUser(UUID movieId, String username, String interaction) {
-        User user = userService.getUserByEmail(username);
+        User user = userService.getUser(username);
         Movie movie = getMovie(movieId);
         if (interaction.equals("like") && !userLikesMovie(user, movie)) {
             movie.getLikedBy().add(user);
