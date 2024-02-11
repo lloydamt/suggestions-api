@@ -52,11 +52,9 @@ public class Movie {
     private String genre;
 
     @Column(name = "likes", nullable = false, columnDefinition = "int default 0")
-    @NonNull
     private Integer likes;
 
     @Column(name = "saves", nullable = false, columnDefinition = "int default 0")
-    @NonNull
     private Integer saves;
 
     @Column(name = "user_rating")
