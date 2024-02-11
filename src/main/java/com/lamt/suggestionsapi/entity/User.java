@@ -28,7 +28,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Builder
 @Setter
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "users")
 public class User {
@@ -40,18 +40,15 @@ public class User {
     private UUID id;
 
     @Column(name = "username", nullable = false, unique = true)
-    @NonNull
     @NotBlank(message = "Username cannot be empty")
     private String username;
 
     @Column(name = "email", nullable = false, unique = true)
-    @NonNull
     @NotBlank(message = "Email Address cannot be empty")
     @Email
     private String email;
 
     @Column(name = "password", nullable = false)
-    @NonNull
     @NotBlank(message = "Password cannot be empty")
     private String password;
 
