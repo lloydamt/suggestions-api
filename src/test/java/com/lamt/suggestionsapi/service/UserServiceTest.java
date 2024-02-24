@@ -1,7 +1,7 @@
 package com.lamt.suggestionsapi.service;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,16 +11,17 @@ import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.exception.EntityAlreadyExistsException;
 import com.lamt.suggestionsapi.exception.EntityNotFoundException;
+import com.lamt.suggestionsapi.mapper.UserMapper;
 import com.lamt.suggestionsapi.repository.UserRepository;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,20 +39,26 @@ public class UserServiceTest {
     @InjectMocks
     UserServiceImpl userService;
 
+    @BeforeEach
+    void setUp() {
+        final var mapper = Mappers.getMapper(UserMapper.class);
+        userService = new UserServiceImpl(userRepository, passwordEncoder, mapper);
+    }
+
     @Test
     public void getUserTest() {
-        User user = buildUser();
+        final User user = buildUser();
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
-        assertEquals(userService.getUser("username"), user);
-        assertEquals(userService.getUser("username").getUsername(), user.getUsername());
+        final var actual = userService.getUser("username");
+
+        assertEquals(actual.getUsername(), user.getUsername());
+        assertEquals(actual.getEmail(), user.getEmail());
     }
 
     @Test
     public void getNonExistentUserTest() {
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            userService.getUser("username");
-        });
+        final var exception = assertThrows(EntityNotFoundException.class, () -> userService.getUser("username"));
         verify(userRepository).findByUsername("username");
         assertEquals(exception.getMessage(), "The user was not found");
     }
@@ -62,88 +69,89 @@ public class UserServiceTest {
         when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
         when(userRepository.save(user)).thenReturn(user);
 
-        assertEquals(userService.createUser(user), user);
+        final var actual = userService.createUser(user);
+
+        assertEquals(actual.getEmail(), user.getEmail());
+        assertEquals(actual.getUsername(), user.getUsername());
     }
 
     @Test
     public void createDuplicateUserTest() {
         var user = buildUser();
         when(userRepository.findByEmail("user@gmail.com")).thenReturn(Optional.of(user));
-        RuntimeException exception = assertThrows(EntityAlreadyExistsException.class, () -> {
-            userService.createUser(user);
-        });
+        final var exception = assertThrows(EntityAlreadyExistsException.class, () -> userService.createUser(user));
         assertEquals(exception.getMessage(), "The user already exists");
     }
 
     @Test
     public void getUserSuggestionsTest() {
-        User user = buildUser();
-        var movies = buildMovies();
-        user.setMovies(movies);
+        final var user = buildUser();
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
-        assertEquals(userService.getUserSuggestions("username"), movies);
+        final var result = userService.getUserSuggestions("username");
+
+        assertEquals(1, result.size());
+        assertEquals("title1", result.stream().findFirst().get().getTitle());
     }
 
     @Test
     public void getUserLikesTest() {
-        User user = buildUser();
-        var movies = buildMovies();
-        user.setLikes(movies);
+        final var user = buildUser();
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
-        assertEquals(userService.getUserLikes(user.getUsername()), movies);
+        final var result = userService.getUserLikes(user.getUsername());
+
+        assertEquals(1, result.size());
+        assertEquals("title1", result.stream().findFirst().get().getTitle());
     }
 
     @Test
     public void getUserSavedTest() {
-        User user = buildUser();
-        var movies = buildMovies();
-        user.setSaved(movies);
+        final var user = buildUser();
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
-        assertEquals(userService.getUserSaved("username"), movies);
+        final var result = userService.getUserSaved("username");
+
+        assertEquals(1, result.size());
+        assertEquals("title1", result.stream().findFirst().get().getTitle());
     }
 
     @Test
     public void getUserCommentsTest() {
-        User user = buildUser();
-        List<Comment> comments = new ArrayList<>();
-        comments.add(new Comment());
-        comments.add(new Comment());
-        user.setComments(comments);
+        final var user = buildUser();
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
-        assertEquals(userService.getUserComments("username"), comments);
+        final var result = userService.getUserComments("username");
+
+        assertEquals("Content", result.get(0).getContent());
     }
 
     private User buildUser() {
         return User.builder()
                 .email("user@gmail.com")
                 .username("username")
-                .password("password")
-                .likes(new HashSet<Movie>())
-                .saved(new HashSet<Movie>())
+                .likes(buildMovies())
+                .saved(buildMovies())
+                .movies(buildMovies())
+                .comments(buildComments())
                 .build();
     }
 
     private Set<Movie> buildMovies() {
-        Movie movie1 = Movie.builder()
+        final var movie = Movie.builder()
                 .title("title1")
                 .description("desc")
                 .year(2022)
                 .likes(0)
                 .saves(0)
                 .build();
-        Movie movie2 = Movie.builder()
-                .title("title2")
-                .description("desc2")
-                .year(2023)
-                .likes(0)
-                .saves(0)
-                .build();
-        var moviesSet = Stream.of(movie1, movie2).collect(Collectors.toSet());
-        Set<Movie> movies = new HashSet<>(moviesSet);
-        return movies;
+        return Stream.of(movie).collect(Collectors.toSet());
+    }
+
+    private List<Comment> buildComments() {
+        return List.of(Comment.builder()
+                .content("Content")
+                .user(User.builder().username("user").build())
+                .build());
     }
 }

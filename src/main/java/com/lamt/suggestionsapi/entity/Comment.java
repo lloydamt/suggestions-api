@@ -30,11 +30,9 @@ public class Comment {
     private UUID id;
 
     @Column(name = "content", nullable = false)
-    @NonNull
     @NotBlank(message = "Comment cannot be blank.")
     private String content;
 
-    @NonNull
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;

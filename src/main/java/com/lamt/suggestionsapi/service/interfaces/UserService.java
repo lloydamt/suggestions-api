@@ -1,28 +1,30 @@
 package com.lamt.suggestionsapi.service.interfaces;
 
-import com.lamt.suggestionsapi.entity.Comment;
-import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
+import com.lamt.suggestionsapi.model.CommentDto;
+import com.lamt.suggestionsapi.model.UserDto;
+import com.lamt.suggestionsapi.model.base.BaseMovieDto;
+import com.lamt.suggestionsapi.model.base.BaseUserDto;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 public interface UserService {
-    User getUser(String username);
+    UserDto getUser(String username);
 
-    User getUser(UUID id);
+    UserDto getUser(UUID id);
 
-    User getUserByEmail(String email);
+    UserDto getUserByEmail(String email);
 
-    User createUser(User user);
+    BaseUserDto createUser(User user);
 
     void deleteuser(String username);
 
-    Set<Movie> getUserSuggestions(String username);
+    Set<BaseMovieDto> getUserSuggestions(String username);
 
-    Set<Movie> getUserLikes(String username);
+    Set<BaseMovieDto> getUserLikes(String username);
 
-    Set<Movie> getUserSaved(String username);
+    Set<BaseMovieDto> getUserSaved(String username);
 
-    List<Comment> getUserComments(String username);
+    List<CommentDto> getUserComments(String username);
 }

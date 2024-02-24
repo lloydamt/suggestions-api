@@ -1,14 +1,15 @@
 package com.lamt.suggestionsapi.model.base;
 
-import com.lamt.suggestionsapi.model.UserDto;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseMovieDto {
@@ -16,5 +17,8 @@ public class BaseMovieDto {
     private String title;
     private String description;
     private Integer year;
-    private UserDto user;
+    private BaseUserDto user;
+    private String genre;
+    private Integer likes;
+    private Integer saves;
 }

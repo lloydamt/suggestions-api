@@ -1,6 +1,6 @@
 package com.lamt.suggestionsapi.web;
 
-import com.lamt.suggestionsapi.entity.Comment;
+import com.lamt.suggestionsapi.model.CommentDto;
 import com.lamt.suggestionsapi.service.interfaces.CommentService;
 import java.util.List;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class CommentController {
     CommentService commentService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<Comment>> getAllComments() {
+    public ResponseEntity<List<CommentDto>> getAllComments() {
         return new ResponseEntity<>(commentService.getAllComments(), HttpStatus.OK);
     }
 

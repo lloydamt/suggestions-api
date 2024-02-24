@@ -1,10 +1,12 @@
 package com.lamt.suggestionsapi.service;
 
-import com.lamt.suggestionsapi.entity.Comment;
-import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.exception.EntityAlreadyExistsException;
 import com.lamt.suggestionsapi.exception.EntityNotFoundException;
+import com.lamt.suggestionsapi.mapper.UserMapper;
+import com.lamt.suggestionsapi.model.CommentDto;
+import com.lamt.suggestionsapi.model.UserDto;
+import com.lamt.suggestionsapi.model.base.BaseMovieDto;
 import com.lamt.suggestionsapi.repository.UserRepository;
 import com.lamt.suggestionsapi.service.interfaces.UserService;
 import java.util.List;
@@ -20,31 +22,30 @@ public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final UserMapper userMapper;
 
     @Override
-    public User getUser(String username) {
-        var user = userRepository
+    public UserDto getUser(String username) {
+        return userMapper.mapEntityToDto(userRepository
                 .findByUsername(username.toLowerCase())
-                .orElseThrow(() -> new EntityNotFoundException(User.class));
-        return user;
+                .orElseThrow(() -> new EntityNotFoundException(User.class)));
     }
 
     @Override
-    public User getUser(UUID id) {
-        var user = userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(User.class));
-        return user;
+    public UserDto getUser(UUID id) {
+        return userMapper.mapEntityToDto(
+                userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(User.class)));
     }
 
     @Override
-    public User getUserByEmail(String email) {
-        var user = userRepository
+    public UserDto getUserByEmail(String email) {
+        return userMapper.mapEntityToDto(userRepository
                 .findByEmail(email.toLowerCase())
-                .orElseThrow(() -> new EntityNotFoundException(User.class));
-        return user;
+                .orElseThrow(() -> new EntityNotFoundException(User.class)));
     }
 
     @Override
-    public User createUser(User user) {
+    public UserDto createUser(User user) {
         var userExists = userRepository.findByUsername(user.getUsername()).isPresent()
                 || userRepository.findByEmail(user.getEmail()).isPresent();
         if (userExists) {
@@ -53,7 +54,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         user.setUsername(user.getUsername().toLowerCase());
         user.setEmail(user.getEmail().toLowerCase());
-        return userRepository.save(user);
+        return userMapper.mapEntityToDto(userRepository.save(user));
     }
 
     @Override
@@ -62,26 +63,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Set<Movie> getUserSuggestions(String username) {
-        User user = getUser(username);
+    public Set<BaseMovieDto> getUserSuggestions(String username) {
+        final var user = getUser(username);
         return user.getMovies();
     }
 
     @Override
-    public Set<Movie> getUserLikes(String username) {
-        User user = getUser(username);
+    public Set<BaseMovieDto> getUserLikes(String username) {
+        final var user = getUser(username);
         return user.getLikes();
     }
 
     @Override
-    public Set<Movie> getUserSaved(String username) {
-        User user = getUser(username);
+    public Set<BaseMovieDto> getUserSaved(String username) {
+        final var user = getUser(username);
         return user.getSaved();
     }
 
     @Override
-    public List<Comment> getUserComments(String username) {
-        User user = getUser(username);
+    public List<CommentDto> getUserComments(String username) {
+        final var user = getUser(username);
         return user.getComments();
     }
 }

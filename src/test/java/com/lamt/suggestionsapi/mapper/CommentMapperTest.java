@@ -1,18 +1,17 @@
 package com.lamt.suggestionsapi.mapper;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.lamt.suggestionsapi.entity.Comment;
 import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.model.CommentDto;
 import com.lamt.suggestionsapi.model.base.BaseMovieDto;
 import com.lamt.suggestionsapi.model.base.BaseUserDto;
-import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 public class CommentMapperTest {
     final CommentMapper mapper = Mappers.getMapper(CommentMapper.class);

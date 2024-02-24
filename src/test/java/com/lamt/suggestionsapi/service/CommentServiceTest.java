@@ -8,17 +8,21 @@ import static org.mockito.Mockito.when;
 import com.lamt.suggestionsapi.entity.Comment;
 import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
+import com.lamt.suggestionsapi.mapper.CommentMapper;
+import com.lamt.suggestionsapi.model.CommentDto;
+import com.lamt.suggestionsapi.model.MovieDto;
+import com.lamt.suggestionsapi.model.UserDto;
 import com.lamt.suggestionsapi.repository.CommentRepository;
 import com.lamt.suggestionsapi.service.interfaces.MovieService;
 import com.lamt.suggestionsapi.service.interfaces.UserService;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -38,94 +42,83 @@ public class CommentServiceTest {
     @InjectMocks
     CommentServiceImpl commentService;
 
+    final CommentMapper mapper = Mappers.getMapper(CommentMapper.class);
+
+    @BeforeEach
+    void setUp() {
+        commentService = new CommentServiceImpl(commentRepository, mapper, movieService, userService);
+    }
+
     @Test
     public void getCommentTest() {
-        Comment comment = buildComment("new comment");
+        Comment comment = buildComment();
         when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
 
-        assertEquals(comment, commentService.getComment(UUID.randomUUID()));
+        final var result = commentService.getComment(UUID.randomUUID());
+
+        assertEquals(comment.getContent(), result.getContent());
     }
 
     @Test
     public void getAllCommentsTest() {
-        Comment comment = buildComment("new comment");
-        Comment comment2 = buildComment("another comment");
-        List<Comment> comments = Arrays.asList(comment, comment2);
+        final var comments = List.of(buildComment());
+
         when(commentRepository.findAll()).thenReturn(comments);
 
-        assertEquals(comments, commentService.getAllComments());
+        final var result = commentService.getAllComments();
+
+        assertEquals(1, result.size());
+        assertEquals("comment", result.get(0).getContent());
     }
 
     @Test
     public void addCommentTest() {
-        var id = UUID.randomUUID();
-        Movie movie = buildMovie().toBuilder().id(id).build();
-        User user = buildUser().toBuilder().id(id).build();
+        final var id = UUID.randomUUID();
 
-        Comment comment = buildComment("new comment");
-        when(movieService.getMovie(id)).thenReturn(movie);
-        when(userService.getUser(id)).thenReturn(user);
-        when(commentRepository.save(comment)).thenReturn(comment);
+        final var comment = CommentDto.builder().content("comment").build();
+        when(movieService.getMovie(any()))
+                .thenReturn(MovieDto.builder().title("movie").build());
+        when(userService.getUser(any(UUID.class)))
+                .thenReturn(UserDto.builder().username("user").build());
+        when(commentRepository.save(any())).thenReturn(buildComment());
 
-        var savedComment = commentService.addComment(comment, id, id);
-        assertEquals(comment, savedComment);
-        assertEquals("title1", savedComment.getMovie().getTitle());
+        var savedComment = commentService.addComment(
+                CommentDto.builder().content("comment").build(), id, id);
+        assertEquals(comment.getContent(), savedComment.getContent());
     }
 
     @Test
     public void findCommentsByUser() {
-        var id = UUID.randomUUID();
-        Movie movie = buildMovie().toBuilder().id(id).build();
+        final var id = UUID.randomUUID();
 
-        Comment comment = buildComment("new comment");
-        Comment comment2 = buildComment("another comment");
-        var comments = List.of(comment, comment2);
-        movie.setComments(comments);
-
-        when(commentRepository.findAllByUserIdAndMovieId(any(), any())).thenReturn(comments);
+        when(commentRepository.findAllByUserIdAndMovieId(any(), any())).thenReturn(List.of(buildComment()));
 
         var savedComments = commentService.findUserCommentForMovie(id, id);
 
-        assertEquals(comments, savedComments);
+        assertEquals(1, savedComments.size());
+        assertEquals("comment", savedComments.get(0).getContent());
     }
 
     @Test
     public void deleteCommentTest() {
-        var id = UUID.randomUUID();
-        var user = buildUser().toBuilder().id(id).build();
-        var comment = buildComment("new comment").toBuilder().user(user).build();
+        final var id = UUID.randomUUID();
+        final var comment = Comment.builder()
+                .content("comment")
+                .user(User.builder().username("user").id(id).build())
+                .build();
+
         when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
         commentService.deleteComment(UUID.randomUUID(), id);
 
         verify(commentRepository).deleteById(any());
     }
 
-    private Comment buildComment(String content) {
+    private Comment buildComment() {
         return Comment.builder()
-                .content(content)
-                .user(buildUser())
-                .movie(buildMovie())
+                .content("comment")
+                .user(User.builder().username("user").build())
+                .movie(Movie.builder().title("movie").build())
                 .timestamp(LocalDateTime.now())
-                .build();
-    }
-
-    private User buildUser() {
-        return User.builder()
-                .email("user@gmail.com")
-                .username("username")
-                .password("password")
-                .likes(new HashSet<Movie>())
-                .saved(new HashSet<Movie>())
-                .build();
-    }
-
-    private Movie buildMovie() {
-        return Movie.builder()
-                .title("title1")
-                .description("desc")
-                .year(2022)
-                .likes(0)
-                .saves(0)
                 .build();
     }
 }

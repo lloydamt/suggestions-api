@@ -1,33 +1,34 @@
 package com.lamt.suggestionsapi.service.interfaces;
 
-import com.lamt.suggestionsapi.entity.Comment;
-import com.lamt.suggestionsapi.entity.Movie;
+import com.lamt.suggestionsapi.model.CommentDto;
+import com.lamt.suggestionsapi.model.MovieDto;
+import com.lamt.suggestionsapi.model.base.BaseMovieDto;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 public interface MovieService {
-    Movie suggestMovie(Movie movie, String username);
+    MovieDto suggestMovie(BaseMovieDto movie, String username);
 
-    Movie likeMovie(UUID movieId, String username);
+    BaseMovieDto likeMovie(UUID movieId, String username);
 
-    Movie saveMovie(UUID movieId, String username);
+    BaseMovieDto saveMovie(UUID movieId, String username);
 
-    Movie editMovie(UUID id, String username, Movie movie);
+    BaseMovieDto editMovie(UUID id, String username, BaseMovieDto movie);
 
-    Movie getMovie(UUID movieId);
+    MovieDto getMovie(UUID movieId);
 
     Integer getMovieLikes(UUID movieId);
 
-    Set<Movie> getLikedMovies();
+    Set<BaseMovieDto> getLikedMovies();
 
-    Set<Movie> getSavedMovies();
+    Set<BaseMovieDto> getSavedMovies();
 
-    Set<Movie> getAllMovies();
+    Set<MovieDto> getAllMovies();
 
-    Set<Movie> getMoviesByUser(UUID userId);
+    Set<BaseMovieDto> getMoviesByUser(UUID userId);
 
-    List<Comment> getMovieComments(UUID movieId);
+    List<CommentDto> getMovieComments(UUID movieId);
 
     void unlikeMovie(UUID movieId, String username);
 
