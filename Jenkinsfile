@@ -31,6 +31,7 @@ pipeline {
                 withSonarQubeEnv('sonar') {
                     sh '''${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectName=suggestions-api \
+                    -Dsonar.projectKey=suggestions-api \
                     -Dsonar.projectVersion=1.0 \
                     -Dsonar.sources=src/ \
                     -Dsonar.tests=test \
