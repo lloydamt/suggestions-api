@@ -34,7 +34,8 @@ pipeline {
                     -Dsonar.projectKey=suggestions-api \
                     -Dsonar.projectVersion=1.0 \
                     -Dsonar.sources=src/ \
-                    -Dsonar.java.binaries=target/test-classes/com/lamt/suggestionsapi \
+                    -Dsonar.java.binaries=target/classes \
+                    -Dsonar.java.test.binaries=target/test-classes \
                     -Dsonar.junit.reportPaths=target/surefire-reports/*.xml \
                     -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
                     '''
