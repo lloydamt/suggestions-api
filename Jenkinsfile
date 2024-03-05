@@ -28,7 +28,7 @@ pipeline {
                 scannerHome = tool 'sonar5.0'
             }
             steps {
-                withSonarQubeEnv('My SonarQube Server') {
+                withSonarQubeEnv('sonar') {
                     sh '''${scannerHome}/bin/sonar-scanner \
                     -Dsonar.projectName=suggestions-api \
                     -Dsonar.projectVersion=1.0 \
