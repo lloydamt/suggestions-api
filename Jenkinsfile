@@ -5,15 +5,15 @@ pipeline {
         jdk "JAVA17"
     }
     stages {
-        stage('Build') {
-            steps {
-                sh 'mvn install'
-            }
-        }
-        
         stage('Test') {
             steps {
                 sh 'mvn spotless:check test'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn install'
             }
         }
 
