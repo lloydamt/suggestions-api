@@ -9,5 +9,6 @@ import org.springframework.stereotype.Component;
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
     CommentDto mapToDto(Comment entity);
+
     Comment mapToEntity(CommentDto dto);
 }
