@@ -1,10 +1,10 @@
 package com.lamt.suggestionsapi.service;
 
 import com.lamt.suggestionsapi.entity.Comment;
-import com.lamt.suggestionsapi.entity.Movie;
-import com.lamt.suggestionsapi.entity.User;
 import com.lamt.suggestionsapi.exception.EntityNotFoundException;
 import com.lamt.suggestionsapi.exception.UserNotPermittedException;
+import com.lamt.suggestionsapi.mapper.CommentMapper;
+import com.lamt.suggestionsapi.model.CommentDto;
 import com.lamt.suggestionsapi.repository.CommentRepository;
 import com.lamt.suggestionsapi.service.interfaces.CommentService;
 import com.lamt.suggestionsapi.service.interfaces.MovieService;
@@ -18,22 +18,24 @@ import org.springframework.stereotype.Service;
 @Service
 public class CommentServiceImpl implements CommentService {
 
-    CommentRepository commentRepository;
-    MovieService movieService;
-    UserService userService;
+    private final CommentRepository commentRepository;
+    private final CommentMapper commentMapper;
+    private final MovieService movieService;
+    private final UserService userService;
 
     @Override
-    public Comment addComment(Comment comment, UUID movieId, UUID userId) {
-        Movie movie = movieService.getMovie(movieId);
-        User user = userService.getUser(userId);
+    public CommentDto addComment(CommentDto comment, UUID movieId, UUID userId) {
+        final var movie = movieService.getMovie(movieId);
+        final var user = userService.getUser(userId);
         comment.setMovie(movie);
         comment.setUser(user);
-        return commentRepository.save(comment);
+        final var commentEntity = commentMapper.mapToEntity(comment);
+        return commentMapper.mapToDto(commentRepository.save(commentEntity));
     }
 
     @Override
     public void deleteComment(UUID commentId, UUID userId) {
-        Comment comment = getComment(commentId);
+        final var comment = getComment(commentId);
         if (comment.getUser().getId() != userId) {
             throw new UserNotPermittedException();
         }
@@ -42,18 +44,18 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment getComment(UUID id) {
-        Comment comment = commentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(Comment.class));
-        return comment;
+    public CommentDto getComment(UUID id) {
+        return commentMapper.mapToDto(
+                commentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException(Comment.class)));
     }
 
     @Override
-    public List<Comment> getAllComments() {
-        return (List<Comment>) commentRepository.findAll();
+    public List<CommentDto> getAllComments() {
+        return commentMapper.mapAllToDto(commentRepository.findAll());
     }
 
     @Override
-    public List<Comment> findUserCommentForMovie(UUID userId, UUID movieId) {
-        return commentRepository.findAllByUserIdAndMovieId(userId, movieId);
+    public List<CommentDto> findUserCommentForMovie(UUID userId, UUID movieId) {
+        return commentMapper.mapAllToDto(commentRepository.findAllByUserIdAndMovieId(userId, movieId));
     }
 }

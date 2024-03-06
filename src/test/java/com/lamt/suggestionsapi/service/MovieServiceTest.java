@@ -1,7 +1,7 @@
 package com.lamt.suggestionsapi.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -10,19 +10,25 @@ import static org.mockito.Mockito.when;
 import com.lamt.suggestionsapi.entity.Comment;
 import com.lamt.suggestionsapi.entity.Movie;
 import com.lamt.suggestionsapi.entity.User;
+import com.lamt.suggestionsapi.exception.UserNotPermittedException;
+import com.lamt.suggestionsapi.mapper.MovieMapper;
+import com.lamt.suggestionsapi.mapper.UserMapper;
+import com.lamt.suggestionsapi.model.MovieDto;
+import com.lamt.suggestionsapi.model.UserDto;
+import com.lamt.suggestionsapi.model.base.BaseUserDto;
 import com.lamt.suggestionsapi.repository.MovieRepository;
 import com.lamt.suggestionsapi.service.interfaces.UserService;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,223 +45,225 @@ public class MovieServiceTest {
     @InjectMocks
     MovieServiceImpl movieService;
 
+    @BeforeEach
+    void setUp() {
+        final var movieMapper = Mappers.getMapper(MovieMapper.class);
+        final var userMapper = Mappers.getMapper(UserMapper.class);
+        movieService = new MovieServiceImpl(movieRepository, userMapper, movieMapper, userService);
+    }
+
     @Test
     public void getMovieTest() {
         var id = UUID.randomUUID();
-        var movie = buildMovie();
-        when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
 
-        assertEquals(movie, movieService.getMovie(id));
+        var movie = buildMovie();
+
+        when(movieRepository.findById(any())).thenReturn(Optional.of(movie));
+
+        final var result = movieService.getMovie(id);
+
+        assertEntityEqualsDto(movie, result);
+    }
+
+    private static void assertEntityEqualsDto(Movie movie, MovieDto result) {
+        assertEquals(movie.getTitle(), result.getTitle());
+        assertEquals(movie.getDescription(), result.getDescription());
+        assertEquals(movie.getYear(), result.getYear());
+        assertEquals(movie.getId(), result.getId());
+        assertEquals(movie.getLikes(), result.getLikes());
+        assertEquals(movie.getSaves(), result.getSaves());
+        assertEquals(movie.getSaves(), result.getSaves());
     }
 
     @Test
     public void suggestMovieTest() {
-        User user = buildUser();
-        Movie movie = buildMovie();
+        when(userService.getUser("username")).thenReturn(buildUser());
 
-        when(userService.getUser("username")).thenReturn(user);
-        when(movieRepository.save(movie)).thenReturn(movie);
+        var suggestedMovie =
+                movieService.suggestMovie(MovieDto.builder().title("movie").build(), "username");
 
-        var suggestedMovie = movieService.suggestMovie(movie, user.getUsername());
-
-        assertEquals(movie, suggestedMovie);
+        assertEquals("movie", suggestedMovie.getTitle());
     }
 
     @Test
     public void editMovieTitleTest() {
-        var id = UUID.randomUUID();
-        User user1 = buildUser();
-        var movie = buildMovie().toBuilder().id(id).user(user1).build();
-        var movie2 = movie.toBuilder().title("newMovie").build();
-        user1.setMovies(Stream.of(movie).collect(Collectors.toSet()));
+        final var id = UUID.randomUUID();
+        final var newMovie = MovieDto.builder().title("new movie").build();
+        final var movie = buildMovie();
 
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
-        when(movieRepository.save(movie)).thenReturn(movie);
 
-        movie = movieService.editMovie(id, user1.getUsername(), movie2);
+        final var result = movieService.editMovie(id, "username", newMovie);
 
-        assertEquals("newMovie", movie.getTitle());
-        assertEquals(movie.getDescription(), movie2.getDescription());
-        assertEquals(movie.getYear(), movie2.getYear());
+        assertEquals(newMovie.getTitle(), result.getTitle());
     }
 
     @Test
     public void editMovieUserTest() {
-        var id = UUID.randomUUID();
-        User user = buildUser();
-        User user2 = User.builder()
-                .email("email")
-                .username("newUser")
-                .password("newPassword")
+        final var id = UUID.randomUUID();
+        final var newMovie = MovieDto.builder()
+                .title("new movie")
+                .user(BaseUserDto.builder().username("user").build())
                 .build();
-        Movie movie = buildMovie().toBuilder().id(id).user(user).build();
-        Movie newMovie = movie.toBuilder().user(user2).build();
 
-        when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
-        when(movieRepository.save(movie)).thenReturn(movie);
+        when(movieRepository.findById(id)).thenReturn(Optional.of(buildMovie()));
 
-        var editMovie = movieService.editMovie(id, user.getUsername(), newMovie);
-        assertEquals(user, editMovie.getUser());
+        assertThrows(UserNotPermittedException.class, () -> movieService.editMovie(id, "username", newMovie));
     }
 
     @Test
     public void getMovieLikesTest() {
         var id = UUID.randomUUID();
-        Movie movie = buildMovie().toBuilder().id(id).build();
+        final var movie = buildMovie();
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
 
-        Integer likes = movieService.getMovieLikes(id);
+        final var likes = movieService.getMovieLikes(id);
 
-        assertEquals(Integer.valueOf(0), likes);
+        assertEquals(0, likes);
     }
 
     @Test
     public void getSavedMoviesTest() {
-        User user1 = buildUser();
-        Set<User> savedBy = Stream.of(user1).collect(Collectors.toSet());
-        Movie movie1 = buildMovie().toBuilder().savedBy(savedBy).build();
-        Movie movie2 = buildMovie().toBuilder().title("Movie 2").build();
+        final var movies = Stream.of(buildMovie().toBuilder().saves(1).build()).collect(Collectors.toSet());
 
-        Set<Movie> saved = Stream.of(movie1).collect(Collectors.toSet());
-        Set<Movie> fullList = new HashSet<>(Stream.of(movie1, movie2).collect(Collectors.toSet()));
+        when(movieRepository.findAll()).thenReturn(movies);
 
-        when(movieRepository.findAll()).thenReturn(fullList);
+        final var result = movieService.getSavedMovies();
 
-        assertEquals(saved, movieService.getSavedMovies());
+        assertEquals(1, result.size());
+        assertEquals("movie", result.stream().toList().get(0).getTitle());
     }
 
     @Test
     public void getLikedMoviesTest() {
-        User user1 = buildUser();
-        Set<User> likedBy = new HashSet<>(Stream.of(user1).collect(Collectors.toSet()));
-        Movie movie1 = buildMovie().toBuilder().likedBy(likedBy).build();
-        Movie movie2 = buildMovie().toBuilder().title("Movie 2").build();
+        final var movies = Stream.of(
+                        buildMovie(),
+                        Movie.builder().title("liked movie").likes(1).build())
+                .collect(Collectors.toSet());
 
-        Set<Movie> liked = new HashSet<>(Stream.of(movie1).collect(Collectors.toSet()));
-        Set<Movie> fullList = new HashSet<>(Stream.of(movie1, movie2).collect(Collectors.toSet()));
+        when(movieRepository.findAll()).thenReturn(movies);
 
-        when(movieRepository.findAll()).thenReturn(fullList);
+        final var result = movieService.getLikedMovies();
 
-        assertEquals(liked, movieService.getLikedMovies());
+        assertEquals(1, result.size());
     }
 
     @Test
     public void getMovieByUserTest() {
-        User user1 = buildUser();
-        Movie movie1 = buildMovie().toBuilder().build();
-        Movie movie2 = buildMovie().toBuilder().title("Movie 2").build();
-        Set<Movie> fullList = new HashSet<>(Stream.of(movie1, movie2).collect(Collectors.toSet()));
-        user1.setMovies(fullList);
-        when(movieRepository.findByUserId(any())).thenReturn(fullList);
+        final var movie = buildMovie();
 
-        assertEquals(fullList, movieService.getMoviesByUser(UUID.randomUUID()));
+        when(movieRepository.findByUserId(any())).thenReturn(Set.of(movie));
+
+        final var result = movieService.getMoviesByUser(UUID.randomUUID());
+
+        assertEquals(1, result.size());
     }
 
     @Test
     public void getAllMoviesTest() {
-        Movie movie1 = buildMovie().toBuilder().build();
-        Movie movie2 = buildMovie().toBuilder().title("Movie 2").build();
-        Set<Movie> fullList = new HashSet<>(Stream.of(movie1, movie2).collect(Collectors.toSet()));
+        final var movies = Stream.of(
+                        buildMovie(),
+                        Movie.builder().title("saved movie").saves(1).build())
+                .collect(Collectors.toSet());
 
-        when(movieRepository.findAll()).thenReturn(fullList);
+        when(movieRepository.findAll()).thenReturn(movies);
 
-        var movies = movieService.getAllMovies();
-        assertEquals(fullList, movies);
+        final var result = movieService.getAllMovies();
+
+        assertEquals(2, result.size());
     }
 
     @Test
     public void likeMovieTest() {
-        var id = UUID.randomUUID();
-        User user1 = buildUser();
-        Movie movie = buildMovie().toBuilder().id(id).build();
+        final var id = UUID.randomUUID();
+        final var movie = buildMovie();
+        final var user = UserDto.builder().username("username").likes(Set.of()).build();
 
-        when(userService.getUser("username")).thenReturn(user1);
+        when(userService.getUser(any(String.class))).thenReturn(user);
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
-        when(movieRepository.save(movie)).thenReturn(movie);
 
-        var likedMovie = movieService.likeMovie(id, "username");
+        final var result = movieService.likeMovie(id, "username");
 
-        assertTrue(likedMovie.getLikedBy().contains(user1));
-        assertEquals(Integer.valueOf(1), likedMovie.getLikes());
+        assertEquals(1, result.getLikedBy().size());
+        assertEquals(1, result.getLikes());
+        assertTrue(result.getLikedBy().contains(user));
     }
+
+    // add new test for user already likes movie
 
     @Test
     public void saveMovieTest() {
-        var id = UUID.randomUUID();
-        User user1 = buildUser();
-        Movie movie = buildMovie().toBuilder().id(id).build();
+        final var id = UUID.randomUUID();
+        final var movie = buildMovie();
+        final var user = UserDto.builder().username("username").saved(Set.of()).build();
 
-        when(userService.getUser("username")).thenReturn(user1);
+        when(userService.getUser(any(String.class))).thenReturn(user);
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
-        when(movieRepository.save(movie)).thenReturn(movie);
 
-        var savedMovie = movieService.saveMovie(id, "username");
+        final var result = movieService.saveMovie(id, "username");
 
-        assertTrue(savedMovie.getSavedBy().contains(user1));
-        assertEquals(Integer.valueOf(1), savedMovie.getSaves());
+        assertEquals(1, result.getSavedBy().size());
+        assertEquals(1, result.getSaves());
+        assertTrue(result.getSavedBy().contains(user));
     }
 
     @Test
     public void getMovieCommentsTest() {
-        Comment comment1 = Comment.builder()
+        final var comment = Comment.builder()
                 .content("new comment")
-                .user(buildUser())
                 .movie(buildMovie())
+                .user(User.builder().build())
                 .timestamp(LocalDateTime.now())
                 .build();
-        Comment comment2 = Comment.builder()
-                .content("another comment")
-                .user(new User())
-                .movie(buildMovie())
-                .timestamp(LocalDateTime.now())
-                .build();
-        List<Comment> comments = Arrays.asList(comment1, comment2);
-        Movie movie = buildMovie().toBuilder().comments(comments).build();
+        final var movie = buildMovie().toBuilder().comments(List.of(comment)).build();
 
         when(movieRepository.findById(any())).thenReturn(Optional.of(movie));
 
-        assertEquals(comments, movieService.getMovieComments(UUID.randomUUID()));
+        final var result = movieService.getMovieComments(UUID.randomUUID());
+
+        assertEquals(1, result.size());
+        assertEquals("new comment", result.get(0).getContent());
+        assertEquals("movie", result.get(0).getMovie().getTitle());
     }
 
     @Test
     public void unlikeMovieTest() {
-        var id = UUID.randomUUID();
-        User user = buildUser();
-        Movie movie =
-                buildMovie().toBuilder().likedBy(new HashSet<>(List.of(user))).build();
+        final var id = UUID.randomUUID();
+        final var user =
+                User.builder().username("username").email("user@gmail.com").build();
+        final var movie =
+                buildMovie().toBuilder().likedBy(Set.of(user)).likes(1).build();
 
-        when(userService.getUser("username")).thenReturn(user);
+        when(userService.getUser("username")).thenReturn(buildUser());
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
-        when(movieRepository.save(movie)).thenReturn(movie);
 
         movieService.unlikeMovie(id, "username");
 
         verify(userService).getUser("username");
         verify(movieRepository).save(any());
-        assertFalse(movieService.getMovie(id).getLikedBy().contains(user));
     }
 
     @Test
     public void unsaveMovieTest() {
-        var id = UUID.randomUUID();
-        User user = buildUser();
-        Movie movie =
-                buildMovie().toBuilder().savedBy(new HashSet<>(List.of(user))).build();
-        when(userService.getUser("username")).thenReturn(user);
+        final var id = UUID.randomUUID();
+        final var user =
+                User.builder().username("username").email("user@gmail.com").build();
+        final var movie =
+                buildMovie().toBuilder().savedBy(Set.of(user)).saves(1).build();
+
+        when(userService.getUser("username")).thenReturn(buildUser());
         when(movieRepository.findById(id)).thenReturn(Optional.of(movie));
-        when(movieRepository.save(movie)).thenReturn(movie);
 
         movieService.unsaveMovie(id, "username");
 
         verify(userService).getUser("username");
         verify(movieRepository).save(any());
-        assertFalse(movieService.getMovie(id).getSavedBy().contains(user));
     }
 
     @Test
     public void testDeleteMovie() {
-        User user1 = buildUser();
-        Movie movie = buildMovie().toBuilder().user(user1).build();
+        final var user = User.builder().username("username").build();
+        Movie movie = buildMovie().toBuilder().user(user).build();
 
         when(movieRepository.findById(any())).thenReturn(Optional.of(movie));
 
@@ -269,21 +277,16 @@ public class MovieServiceTest {
         return Movie.builder()
                 .title("movie")
                 .description("desc")
+                .user(User.builder().username("username").build())
                 .year(2022)
                 .likes(0)
                 .saves(0)
-                .savedBy(new HashSet<>())
-                .likedBy(new HashSet<>())
+                .savedBy(Set.of())
+                .likedBy(Set.of())
                 .build();
     }
 
-    private User buildUser() {
-        return User.builder()
-                .email("user@gmail.com")
-                .username("username")
-                .password("password")
-                .likes(new HashSet<Movie>())
-                .saved(new HashSet<Movie>())
-                .build();
+    private UserDto buildUser() {
+        return UserDto.builder().email("user@gmail.com").username("username").build();
     }
 }

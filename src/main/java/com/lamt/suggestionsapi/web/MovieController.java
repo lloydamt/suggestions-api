@@ -1,7 +1,8 @@
 package com.lamt.suggestionsapi.web;
 
-import com.lamt.suggestionsapi.entity.Comment;
-import com.lamt.suggestionsapi.entity.Movie;
+import com.lamt.suggestionsapi.model.CommentDto;
+import com.lamt.suggestionsapi.model.MovieDto;
+import com.lamt.suggestionsapi.model.base.BaseMovieDto;
 import com.lamt.suggestionsapi.service.interfaces.CommentService;
 import com.lamt.suggestionsapi.service.interfaces.MovieService;
 import jakarta.validation.Valid;
@@ -30,15 +31,15 @@ public class MovieController {
     private MovieService movieService;
 
     @Autowired
-    CommentService commentService;
+    private CommentService commentService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Movie> getMovie(@PathVariable UUID id) {
+    public ResponseEntity<MovieDto> getMovie(@PathVariable UUID id) {
         return new ResponseEntity<>(movieService.getMovie(id), HttpStatus.OK);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Set<Movie>> getAllMovies() {
+    public ResponseEntity<Set<MovieDto>> getAllMovies() {
         return new ResponseEntity<>(movieService.getAllMovies(), HttpStatus.OK);
     }
 
@@ -48,38 +49,39 @@ public class MovieController {
     // }
 
     @GetMapping("/{movieId}/comments")
-    public ResponseEntity<List<Comment>> getMovieComments(@PathVariable UUID movieId) {
+    public ResponseEntity<List<CommentDto>> getMovieComments(@PathVariable UUID movieId) {
         return new ResponseEntity<>(movieService.getMovieComments(movieId), HttpStatus.OK);
     }
 
     @GetMapping("/liked")
-    public ResponseEntity<Set<Movie>> getLikedMovies() {
+    public ResponseEntity<Set<BaseMovieDto>> getLikedMovies() {
         return new ResponseEntity<>(movieService.getLikedMovies(), HttpStatus.OK);
     }
 
     @GetMapping("/saved")
-    public ResponseEntity<Set<Movie>> getSavedMovies() {
+    public ResponseEntity<Set<BaseMovieDto>> getSavedMovies() {
         return new ResponseEntity<>(movieService.getSavedMovies(), HttpStatus.OK);
     }
 
     @PostMapping("/suggest")
-    public ResponseEntity<Movie> suggestMovie(@Valid @RequestBody Movie movie, Authentication authentication) {
+    public ResponseEntity<BaseMovieDto> suggestMovie(
+            @Valid @RequestBody BaseMovieDto movie, Authentication authentication) {
         return new ResponseEntity<>(movieService.suggestMovie(movie, authentication.getName()), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Movie> editMovie(
-            @RequestBody Movie movie, @PathVariable UUID id, Authentication authentication) {
+    public ResponseEntity<BaseMovieDto> editMovie(
+            @RequestBody BaseMovieDto movie, @PathVariable UUID id, Authentication authentication) {
         return new ResponseEntity<>(movieService.editMovie(id, authentication.getName(), movie), HttpStatus.OK);
     }
 
     @PatchMapping("/{movieId}/like")
-    public ResponseEntity<Movie> likeMovie(@PathVariable UUID movieId, Authentication authentication) {
+    public ResponseEntity<BaseMovieDto> likeMovie(@PathVariable UUID movieId, Authentication authentication) {
         return new ResponseEntity<>(movieService.likeMovie(movieId, authentication.getName()), HttpStatus.OK);
     }
 
     @PatchMapping("/{movieId}/save")
-    public ResponseEntity<Movie> saveMovie(@PathVariable UUID movieId, Authentication authentication) {
+    public ResponseEntity<BaseMovieDto> saveMovie(@PathVariable UUID movieId, Authentication authentication) {
         return new ResponseEntity<>(movieService.saveMovie(movieId, authentication.getName()), HttpStatus.OK);
     }
 
@@ -102,14 +104,14 @@ public class MovieController {
     }
 
     @GetMapping("/{id}/user/{userId}/comments")
-    public ResponseEntity<List<Comment>> getUserCommentsForMovie(UUID movieId, UUID userId) {
+    public ResponseEntity<List<CommentDto>> getUserCommentsForMovie(UUID movieId, UUID userId) {
         return new ResponseEntity<>(commentService.findUserCommentForMovie(movieId, userId), HttpStatus.OK);
     }
 
     @PostMapping("/{movieId}/comment")
-    public ResponseEntity<Comment> addComment(
-            @PathVariable UUID movieId, @Valid @RequestBody Comment comment, Authentication authentication) {
+    public ResponseEntity<CommentDto> addComment(
+            @PathVariable UUID movieId, @Valid @RequestBody CommentDto comment, Authentication authentication) {
         var userId = UUID.fromString(authentication.getName());
-        return new ResponseEntity<Comment>(commentService.addComment(comment, movieId, userId), HttpStatus.CREATED);
+        return new ResponseEntity<>(commentService.addComment(comment, movieId, userId), HttpStatus.CREATED);
     }
 }
