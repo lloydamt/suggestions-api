@@ -119,7 +119,7 @@ public class MovieServiceImpl implements MovieService {
         return movie.getComments();
     }
 
-    // Write tests for this
+    // Write component/integration tests for this
     @Override
     public void unlikeMovie(UUID movieId, String username) {
         final var movie = getMovie(movieId);

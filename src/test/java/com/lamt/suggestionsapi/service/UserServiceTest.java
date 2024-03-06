@@ -16,6 +16,7 @@ import com.lamt.suggestionsapi.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,17 @@ public class UserServiceTest {
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
         final var actual = userService.getUser("username");
+
+        assertEquals(actual.getUsername(), user.getUsername());
+        assertEquals(actual.getEmail(), user.getEmail());
+    }
+
+    @Test
+    public void getUserByIdTest() {
+        final var user = buildUser();
+        when(userRepository.findById(any())).thenReturn(Optional.of(user));
+
+        final var actual = userService.getUser(UUID.randomUUID());
 
         assertEquals(actual.getUsername(), user.getUsername());
         assertEquals(actual.getEmail(), user.getEmail());
@@ -124,6 +136,15 @@ public class UserServiceTest {
         final var result = userService.getUserComments("username");
 
         assertEquals("Content", result.get(0).getContent());
+    }
+
+    @Test
+    public void deleteUserTest() {
+        final var username = "user";
+
+        userService.deleteuser(username);
+
+        verify(userRepository).deleteByUsername(username);
     }
 
     private User buildUser() {
