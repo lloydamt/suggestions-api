@@ -5,15 +5,15 @@ pipeline {
         jdk "JAVA17"
     }
     stages {
-        stage('Test') {
+        stage('Build') {
             steps {
-                sh 'mvn spotless:check test'
+                sh 'mvn install -DskipTests'
             }
         }
 
-        stage('Build') {
+        stage('Test') {
             steps {
-                sh 'mvn install'
+                sh 'mvn spotless:check test'
             }
         }
 
@@ -33,10 +33,12 @@ pipeline {
                     -Dsonar.projectName=suggestions-api \
                     -Dsonar.projectKey=suggestions-api \
                     -Dsonar.projectVersion=1.0 \
-                    -Dsonar.sources=src/ \
+                    -Dsonar.sources=src/main \
+                    -Dsonar.tests=src/test \
                     -Dsonar.java.binaries=target/classes \
                     -Dsonar.java.test.binaries=target/test-classes \
-                    -Dsonar.junit.reportPaths=target/surefire-reports/*.xml \
+                    -Dsonar.junit.reportPaths=target/surefire-reports/ \
+                    -Dsonar.jacoco.reportsPath=target/jacoco.exec \
                     -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
                     '''
                 }
