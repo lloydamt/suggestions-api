@@ -43,6 +43,7 @@ jobs:
             -Dsonar.projectKey=lloydamt_suggestions-api
             -Dsonar.sources=src/main
             -Dsonar.tests=src/test
+            -Dsonar.java.binaries=target/classes
             -Dsonar.java.test.binaries=target/test-classes
             -Dsonar.junit.reportPaths=target/surefire-reports/
             -Dsonar.jacoco.reportsPath=target/jacoco.exec
