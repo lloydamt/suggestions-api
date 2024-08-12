@@ -38,7 +38,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: "src/"
           args: >
             -Dsonar.organization=lloydamt
             -Dsonar.projectKey=lloydamt_suggestions-api
