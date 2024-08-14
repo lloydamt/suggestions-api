@@ -124,14 +124,17 @@ public class MovieServiceTest {
 
     @Test
     public void getSavedMoviesTest() {
-        final var movies = Stream.of(buildMovie().toBuilder().saves(1).build()).collect(Collectors.toSet());
+        final var movies = Stream.of(
+                        buildMovie(),
+                        Movie.builder().title("saved movie").saves(1).build())
+                .collect(Collectors.toSet());
 
         when(movieRepository.findAll()).thenReturn(movies);
 
         final var result = movieService.getSavedMovies();
 
         assertEquals(1, result.size());
-        assertEquals("movie", result.stream().toList().get(0).getTitle());
+        assertEquals("saved movie", result.stream().toList().get(0).getTitle());
     }
 
     @Test
