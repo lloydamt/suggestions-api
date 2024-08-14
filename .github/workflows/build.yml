@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/**
-      - fix/**
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -50,3 +48,14 @@ jobs:
             -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
       - name: Build artifact
         run: mvn install -DskipTests
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: ./target
+
+  # publish:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Download artifact
