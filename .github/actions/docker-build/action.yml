@@ -24,6 +24,9 @@ runs:
       with:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
+    - name: List dirs
+      run: ls -la
+      shell: bash
     - name: Build and push image
       uses: docker/build-push-action@v6
       with:
