@@ -14,3 +14,5 @@ jobs:
           fetch-depth: 0
       - name: Run tests and build artifact
         uses: ./.github/actions/build-action
+        with:
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
