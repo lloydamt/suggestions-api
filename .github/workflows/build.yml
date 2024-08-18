@@ -9,5 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Run tests and build artifact
         uses: ./.github/actions/build-action
