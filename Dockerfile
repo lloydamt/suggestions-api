@@ -1,6 +1,10 @@
+FROM maven:3.9.8-eclipse-temurin-17-alpine AS build
+WORKDIR /app
+COPY . .
+RUN mvn install
+
 FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
-ARG JAR_FILE=./target/*.jar
-COPY ${JAR_FILE} /app/app.jar
+COPY --from=build /app/target/*.jar /app/app.jar
 EXPOSE 8085
 CMD ["java","-jar","/app/app.jar"]
