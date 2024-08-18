@@ -24,11 +24,16 @@ runs:
       with:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
-    - name: List dirs
-      run: ls -la
+    - name: Docker build
+      run: docker build -t suggestions-api .
       shell: bash
-    - name: Build and push image
-      uses: docker/build-push-action@v6
-      with:
-        push: ${{ inputs.push }}
-        tags: suggestions-api:latest
+    - name: Check images
+      run: docker images
+      shell: |
+        docker images
+        docker logs suggestions-api
+    # - name: Build and push image
+    #   uses: docker/build-push-action@v6
+    #   with:
+    #     push: ${{ inputs.push }}
+    #     tags: suggestions-api:latest
