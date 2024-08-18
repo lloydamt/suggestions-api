@@ -43,9 +43,3 @@ runs:
           -Dsonar.junit.reportPaths=target/surefire-reports/
           -Dsonar.jacoco.reportsPath=target/jacoco.exec
           -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-    # - name: Build artifact
-    #   run: mvn install -DskipTests
-    #   shell: bash
-    # - name: Extract jar file
-    #   run: mv target/*.jar suggestions-api.jar
-    #   shell: bash
