@@ -46,3 +46,6 @@ runs:
     - name: Build artifact
       run: mvn install -DskipTests
       shell: bash
+    - name: Extract jar file
+      run: mv target/*.jar suggestions-api.jar
+      shell: bash
