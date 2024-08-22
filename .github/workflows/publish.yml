@@ -31,7 +31,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           push: true
-          version: ${{ github.run_id }}
+          version: ${{ github.run_number }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -39,7 +39,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          path: build-files/*.jar
+          name: build-files
+          path: ${{github.run_id}}.jar
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
