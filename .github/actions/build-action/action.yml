@@ -6,6 +6,14 @@ inputs:
   sonar_token:
     description: "Sonarcloud token"
     required: true
+  build_artifact:
+    description: boolean flag to determine whether artifact should be built
+    required: false
+    default: "false"
+  run_id:
+    description: job run id
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -43,3 +51,18 @@ runs:
           -Dsonar.junit.reportPaths=target/surefire-reports/
           -Dsonar.jacoco.reportsPath=target/jacoco.exec
           -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+    - name: build artifact
+      run: mvn install -DskipTests
+      shell: bash
+      if: ${{inputs.build_artifact}} == "true"
+    - name: rename artifact
+      run: |
+        cd target
+        mv *.jar ${{inputs.run_id}}.jar
+      shell: bash
+      if: ${{inputs.build_artifact}} == "true"
+    - uses: actions/upload-artifact@v4
+      with:
+        name: build-files
+        path: target/*.jar
+      if: ${{inputs.build_artifact}} == "true"
