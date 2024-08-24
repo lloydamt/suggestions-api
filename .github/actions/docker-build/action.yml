@@ -13,6 +13,10 @@ inputs:
   password:
     description: registry password
     required: true
+  version:
+    description: docker image version
+    required: false
+    default: latest
 
 runs:
   using: "composite"
@@ -28,4 +32,4 @@ runs:
       uses: docker/build-push-action@v6
       with:
         push: ${{ inputs.push }}
-        tags: ${{ inputs.username }}/suggestions-api:latest
+        tags: ${{ inputs.username }}/suggestions-api:v${{inputs.version}}
