@@ -1,14 +1,16 @@
-name: Publish artifact to dockerhub
+name: Publish and deploy artifact
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 env:
-  ELASTIC_BEANSTALK_NAME: suggestions-app-env
-  ELASTIC_BEANSTALK_ENV_NAME: suggestions-app-env-env
+  ELASTIC_BEANSTALK_NAME: suggestions-app
+  ELASTIC_BEANSTALK_ENV_NAME: suggestions-app-env
 
 jobs:
   build:
@@ -23,28 +25,49 @@ jobs:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           run_id: ${{ github.run_id }}
           build_artifact: true
-      - name: Build docker image and push to dockerhub
-        uses: ./.github/actions/docker-build
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          push: true
-          version: ${{ github.run_number }}
+      # - name: Build docker image and push to dockerhub
+      #   uses: ./.github/actions/docker-build
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #     push: false
+      #     version: ${{ github.run_number }}
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: build-files
+  #     - name: Deploy to EB
+  #       uses: einaregilsson/beanstalk-deploy@v22
+  #       with:
+  #         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         application_name: $ELASTIC_BEANSTALK_NAME
+  #         environment_name: $ELASTIC_BEANSTALK_ENV_NAME
+  #         version_label: ${{ github.run_number }}
+  #         region: us-east-1
+  #         deployment_package: ${{ github.run_id }}.jar
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Checkout source code
+        uses: actions/checkout@v4
         with:
-          name: build-files
+          fetch-depth: 0
+      - name: Generate deployment package
+        run: zip deploy.zip Dockerfile
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v22
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: suggestions-app
-          environment_name: suggestions-app-env
+          application_name: suggestions-app-container
+          environment_name: suggestions-app-container-env
           version_label: ${{ github.run_number }}
           region: us-east-1
           deployment_package: ${{ github.run_id }}.jar
