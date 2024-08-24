@@ -70,4 +70,4 @@ jobs:
           environment_name: suggestions-app-container-env
           version_label: ${{ github.run_number }}
           region: us-east-1
-          deployment_package: ${{ github.run_id }}.jar
+          deployment_package: deploy.zip
