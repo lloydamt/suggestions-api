@@ -40,7 +40,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: build-files
-          path: ${{github.run_id}}.jar
+          # path: ${{github.run_id}}.jar
       # - name: Configure AWS Credentials
       #   uses: aws-actions/configure-aws-credentials@v4
       #   with:
@@ -53,6 +53,8 @@ jobs:
       #     aws elasticbeanstalk create-application-version --application-name $ELASTIC_BEANSTALK_NAME --version-label ${{github.run_id}} --description ${{github.run_id}} --source-bundle S3Bucket="elasticbeanstalk-us-east-1-${{ secrets.AWS_ACCOUNT_ID }}",S3Key="artifact/${{github.run_id}}.jar"
       #     aws elasticbeanstalk update-environment --application-name $ELASTIC_BEANSTALK_NAME --environment-name $ELASTIC_BEANSTALK_ENV_NAME --version-label ${{github.run_id}}
       #     aws elasticbeanstalk wait environment-updated --application-name $ELASTIC_BEANSTALK_NAME --environment-name $ELASTIC_BEANSTALK_ENV_NAME
+      - name: zip files
+        run: zip -r build-files.zip ./build-files
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v22
         with:
@@ -62,4 +64,4 @@ jobs:
           environment_name: suggestions-app-env
           version_label: ${{ github.run_number }}
           region: us-east-1
-          deployment_package: ${{ github.run_id }}.jar
+          deployment_package: build-files.zip
