@@ -25,13 +25,12 @@ jobs:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           run_id: ${{ github.run_id }}
           build_artifact: true
-      # - name: Build docker image and push to dockerhub
-      #   uses: ./.github/actions/docker-build
-      #   with:
-      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      #     push: false
-      #     version: ${{ github.run_number }}
+      - name: Build docker image and push to dockerhub
+        uses: ./.github/actions/docker-build
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          push: true
 
   # deploy:
   #   runs-on: ubuntu-latest
@@ -60,7 +59,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Generate deployment package
-        run: zip deploy.zip Dockerfile
+        run: zip -r deploy.zip *
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v22
         with:

@@ -1,0 +1,12 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "lloydamt/suggestions-api:latest",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "containerPort": "5000"
+    }
+  ]
+}
