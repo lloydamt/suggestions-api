@@ -38,8 +38,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests()
                 .requestMatchers(toH2Console())
                 .permitAll()
-                .requestMatchers("/")
-                .permitAll()
                 .requestMatchers(HttpMethod.POST, SecurityConstants.REGISTER_PATH)
                 .permitAll()
                 .anyRequest()
