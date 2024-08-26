@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 env:
-  ELASTIC_BEANSTALK_NAME: suggestions-app-env
-  ELASTIC_BEANSTALK_ENV_NAME: suggestions-app-env-env
+  ELASTIC_BEANSTALK_NAME: suggestions-app
+  ELASTIC_BEANSTALK_ENV_NAME: suggestions-app-env
 
 jobs:
   build:
@@ -28,7 +30,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          push: true
+          push: false
           version: ${{ github.run_number }}
 
   deploy:
