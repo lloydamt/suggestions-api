@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 env:
@@ -30,7 +28,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          # push: true
+          push: true
           version: ${{ github.run_number }}
 
   deploy:
@@ -45,8 +43,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: $ELASTIC_BEANSTALK_NAME
-          environment_name: $ELASTIC_BEANSTALK_ENV_NAME
+          application_name: suggestions-app
+          environment_name: suggestions-app-env
           version_label: ${{ github.run_number }}
           region: us-east-1
           deployment_package: ${{ github.run_id }}.jar
